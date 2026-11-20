@@ -1,0 +1,28 @@
+h1,h2 {padding:0px;margin:0px;}
+
+h2 {font-style:oblique;}
+h3 {margin-bottom:1em;}
+
+img#logo {width:27em;height: 27em;}
+
+@media (max-width: 500px) {
+  img#logo {width:15em;height: 15em;}
+  h2 span {display:block;}
+}
+
+
+div.welcome-container {
+     text-align: center;
+     background-color: #b6e3bd;
+     height: 100%;
+    }
+
+.android-app-link {width: 100%;text-align: center;}
+
+table {
+      margin-top:2em;
+      margin-bottom:4em;}
+
+
+#conoscenzacreativa img {height: 5em;margin-top:1em;cursor:pointer;vertical-align: middle ;}
+      

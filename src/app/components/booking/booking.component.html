@@ -1,0 +1,11 @@
+<div *ngIf="visibile">
+    <div *ngIf="!attivo">
+      <button mat-raised-button color="accent" (click)="avvia()">Prenota assistenza</button>
+    </div>
+    <div *ngIf="attivo" class="booking-info">
+      <p><strong>Tempo stimato all'arrivo:</strong> {{ tempoRestante }}</p>
+      <p *ngIf="tempoRestante === 'In arrivo'" class="alert">L'autobus è in arrivo!</p>
+      <button *ngIf="mostraConferma" mat-button color="warn" (click)="confirmArriving()">Ok, grazie ... puoi silenziare</button>
+    </div>
+  </div>
+  

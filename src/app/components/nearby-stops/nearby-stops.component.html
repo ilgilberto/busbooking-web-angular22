@@ -1,0 +1,48 @@
+<div class="stops-page" *ngIf="!loading && !error">
+  <h2 class="stops-heading">{{ appliedFilter ? 'Fermate trovate' : 'Fermate vicine' }}</h2>
+  <div class="stops-list">
+    <mat-card *ngFor="let stop of stops" class="bus-stop-card">
+      <mat-card-title>{{ stop.denominazione }}</mat-card-title>
+      <mat-card-content>
+        <p><strong>Codice:</strong> {{ stop.codice }}</p>
+        <p><strong>Ubicazione:</strong> {{ stop.ubicazione }} {{ stop.comune || '' }}</p>
+        <p><strong>Distanza:</strong> {{ formatDistanza(stop.distanza) }}</p>
+        <button mat-raised-button class="bus-primary-button"
+                [routerLink]="['/stop']"
+                [queryParams]="{ codice: stop.codice, nome: stop.denominazione, indirizzo: stop.ubicazione, long: stop.longitudine, lat: stop.latitudine }">
+          Visualizza corse
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <p *ngIf="stops.length === 0" class="stops-empty" role="status">
+    {{ appliedFilter ? 'Nessuna fermata trovata.' : 'Nessuna fermata nelle vicinanze.' }}
+  </p>
+
+  <!-- Filtro rigorosamente DOPO la lista delle fermate, con altezza adattata al contenuto. -->
+  <section class="filter-panel" aria-labelledby="titolo-filtro">
+    <h2 id="titolo-filtro">🔍 Filtra le fermate</h2>
+    <form class="stop-filter-form" (ngSubmit)="filtra()">
+      <label for="nome-fermata" class="visually-hidden">Cerca per nome</label>
+      <input id="nome-fermata" type="search" name="nomeFermata"
+             [(ngModel)]="filterText" placeholder="Cerca per nome"
+             autocomplete="off" aria-label="Cerca per nome" />
+      <button type="submit" class="bus-primary-button">Filtra</button>
+    </form>
+    <p *ngIf="validationMessage" class="filter-feedback" role="alert">{{ validationMessage }}</p>
+    <p *ngIf="searchError" class="filter-feedback" role="alert">{{ searchError }}</p>
+  </section>
+</div>
+
+<!-- Logo a schermo intero durante il caricamento delle fermate, anche con ricerca. -->
+<div *ngIf="loading" class="bus-stops-loading" role="status" aria-live="polite"
+     aria-label="Caricamento fermate vicine">
+  <img class="bus-stops-loading-logo"
+       src="assets/conoscenza-creativa-caricamento.png"
+       alt="Conoscenza Creativa" />
+  <div class="bus-stops-loading-progress">
+    <mat-spinner [diameter]="32" aria-label="Caricamento in corso"></mat-spinner>
+    <span>Caricamento fermate...</span>
+  </div>
+</div>
+<div *ngIf="error" class="stops-error" role="alert">{{ error }}</div>

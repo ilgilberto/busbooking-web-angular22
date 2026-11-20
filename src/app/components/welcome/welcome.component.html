@@ -1,0 +1,42 @@
+<div class="welcome-container">
+  <img src="assets/titolo.jpg" alt="Logo" id="logo" title="BusBooking web" />
+  <h1>BusBooking</h1>
+  <h2>per prendere l'autobus <span>anche all'ultimo secondo</span></h2>
+  <h3>Bologna - Imola - Ferrara</h3>
+    <!-- Mostra download Android solo se isAndroid -->
+    <div *ngIf="isAndroid" class="android-app-link">
+        <table>
+         <tr>
+           <td>
+            <a href="https://play.google.com/store/apps/details?id=info.mandarini.busbooking&hl=it"
+            target="_blank" rel="noopener noreferrer">
+                <img src="assets/android-logo.png" alt="Android" width="80" />
+            </a>
+
+           </td>
+           <td>
+            Scarica l'app Android dal
+            <a href="https://play.google.com/store/apps/details?id=info.mandarini.busbooking&hl=it"
+           target="_blank" rel="noopener noreferrer">
+           Play Store
+        </a>
+            per un'esperienza più completa
+
+           </td>
+
+
+         </tr>
+
+        </table>
+            
+   </div>
+  <p>Consenti l'accesso alla posizione per trovare le fermate vicine.</p>
+  <button mat-raised-button color="primary" (click)="requestLocation()">Consenti</button>
+  <div *ngIf="loading" class="loading-overlay">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+  <p *ngIf="error" class="error">{{ error }}</p>
+  <div id="conoscenzacreativa">
+    Offerto da <img  (click)="goToConoscenzaCreativa();" src="https://www.conoscenzacreativa.it/booksite/static/assets/img/LOGO.png" class="footer-image" alt="Logo galleggiante" title="conoscenzacreativa.it" />
+   </div>
+</div>

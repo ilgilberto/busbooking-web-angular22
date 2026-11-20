@@ -1,0 +1,139 @@
+:host { display: block; min-height: 100%; }
+.stops-page { padding: 20px 18px 24px; background: #f8fcff; color: #222; }
+.filter-panel {
+  box-sizing: border-box;
+  background: #404040;
+  color: #fff;
+  border-radius: 5px;
+  padding: 17px 20px 20px;
+  margin: 14px 2px 0;
+  box-shadow: 0 3px 12px rgba(0,0,0,.25);
+}
+.filter-panel h2 {
+  color: #fff;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  font-size: 28px;
+  font-weight: 500;
+  margin: 0 0 12px 3px;
+  line-height: 1.4;
+}
+.stop-filter-form { display: flex; align-items: flex-start; flex-direction: column; gap: 18px; }
+.stop-filter-form input {
+  width: 252px;
+  max-width: 100%;
+  height: 65px;
+  padding: 0 12px;
+  border: 1px solid #818181;
+  border-radius: 5px;
+  background: transparent;
+  color: #fff;
+  font: 16px Roboto, 'Helvetica Neue', sans-serif;
+  outline-offset: 3px;
+}
+.stop-filter-form input::placeholder { color: #ddd; opacity: 1; }
+.stop-filter-form input:focus { border-color: #e0c7f0; }
+.bus-primary-button {
+  box-sizing: border-box;
+  background: #8617a5 !important;
+  color: #fff !important;
+  border: 0;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 600;
+  min-height: 45px;
+  padding: 0 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,.27);
+}
+.bus-primary-button:hover { background: #74118e !important; }
+.bus-primary-button:focus-visible { outline: 3px solid #c48ad6; outline-offset: 2px; }
+.stops-heading { font-size: 26px; margin: 12px 2px 14px; color: #222; }
+.stops-list { display: flex; flex-direction: column; gap: 3px; }
+.bus-stop-card {
+  display: block;
+  box-sizing: border-box;
+  padding: 14px 20px 18px;
+  border-radius: 15px !important;
+  background: #404040 !important;
+  color: #fff !important;
+  border: none;
+  box-shadow: 0 0 15px rgba(75, 173, 232, .36) !important;
+  --mdc-elevated-card-container-color: #404040;
+}
+.bus-stop-card mat-card-title {
+  display: block;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 500;
+  color: #fff !important;
+  margin: 0 0 6px;
+}
+.bus-stop-card mat-card-content {
+  display: block;
+  padding: 0 !important;
+  color: #fff !important;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.bus-stop-card mat-card-content p { margin: 0 0 14px; }
+.bus-stop-card mat-card-content p strong { font-weight: 700; }
+.bus-stop-card .bus-primary-button { margin: 0; }
+.stops-empty { padding: 24px 20px; font-size: 16px; color: #333; }
+.stops-error { padding: 20px; color: #b00020; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+@media (max-width: 600px) {
+  .stops-page { padding: 12px 10px 20px; }
+  .filter-panel { margin: 14px 0 0; padding: 18px 16px 20px; }
+  .filter-panel h2 { font-size: 24px; }
+  .stop-filter-form { gap: 18px; }
+  .bus-stop-card { padding: 16px; }
+  .bus-stop-card mat-card-title { font-size: 22px; overflow-wrap: anywhere; }
+}
+
+/* Caricamento come nella versione precedente: logo Conoscenza Creativa
+   a schermo intero, senza dipendenza dalla disponibilita' del sito remoto. */
+.bus-stops-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #fff;
+  padding: 10px;
+}
+.bus-stops-loading-logo {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.bus-stops-loading-progress {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 24px);
+  padding: 6px 14px;
+  border-radius: 24px;
+  background: rgb(255 255 255 / 90%);
+  color: #404040;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .bus-stops-loading-progress { bottom: 16px; font-size: 13px; }
+}
+/* Avvisi puntuali sotto il filtro, senza altezze minime fisse. */
+.filter-feedback { margin: 14px 0 0; color: #ffe3e3; font-size: 14px; }

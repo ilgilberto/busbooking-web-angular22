@@ -1,0 +1,17 @@
+.booking-info {
+    background-image: url('../../../assets/booking_sfondo.png');
+    background-size: cover;         // fa in modo che l’immagine riempia l’area
+    background-repeat: no-repeat;  // evita che si ripeta
+    background-position: center;   // la centra orizzontalmente e verticalmente
+    margin-top: 1rem;
+    background-color: #e0f7fa;
+    color:darkgreen;
+    padding: 1rem;
+    border-left: 4px solid #00796b;
+  }
+  
+  .alert {
+    color: #d32f2f;
+    font-weight: bold;
+  }
+  

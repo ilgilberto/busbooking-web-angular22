@@ -1,0 +1,33 @@
+<div class="stop-container">
+  <h2>Corse per: {{ denominazione }} - {{ indirizzo }}
+    <a *ngIf="mapUrl as url" [href]="url" target="_blank" rel="noopener noreferrer"
+       title="Apri su Google Maps" aria-label="Apri fermata su Google Maps">
+      <mat-icon color="primary">place</mat-icon>
+    </a>
+  </h2>
+  <button mat-stroked-button color="primary" (click)="tornaAlleFermate()">Torna alle fermate</button>
+  <ng-container *ngFor="let linea of corse">
+    <mat-card class="stop-card">
+      <mat-card-title>Linea {{ linea.codice }}</mat-card-title>
+      <mat-card-subtitle>{{ linea.message }}</mat-card-subtitle>
+      <mat-card-content>
+        <div *ngFor="let corsa of linea.corse" class="corsa-block">
+          <p *ngIf="corsa.ora">
+            <span *ngIf="corsa.codiceLinea != linea.codice">{{ corsa.codiceLinea }} </span>
+            <strong>Orario:</strong> {{ corsa.ora }}&nbsp;
+            <img *ngIf="corsa.tipologiaOrario === 'DA_SATELLITE'" src="assets/satellite.png" title="Da satellite" alt="Satellite" />
+            <img *ngIf="corsa.tipologiaOrario === 'PREVISTO'" src="assets/orologio.png" title="Da tabellone" alt="Orario previsto" />
+          </p>
+          <p *ngIf="corsa.ora && corsa.descrizione"><strong>Veicolo:</strong> {{ corsa.descrizione }}</p>
+          <app-booking *ngIf="corsa.ora && corsa.tipologiaOrario === 'DA_SATELLITE'"
+                       [(ora)]="corsa.ora" [fermata]="codiceFermata"
+                       [linea]="linea.codice" [descrizione]="corsa.descrizione ?? ''">
+          </app-booking>
+          <hr *ngIf="corsa.ora" />
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
+  <div *ngIf="loading" class="loading-overlay"><mat-spinner></mat-spinner></div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+</div>

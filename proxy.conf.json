@@ -1,0 +1,11 @@
+{
+  "/api/**": {
+    "target": "https://gilberto.info",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/api": "/helloservices"
+    }
+  }
+}
