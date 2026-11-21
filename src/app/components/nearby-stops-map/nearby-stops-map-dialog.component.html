@@ -2,7 +2,8 @@
   <header class="bus-map-dialog-header">
     <div>
       <h2 id="bus-map-dialog-title">Fermate vicine sulla mappa</h2>
-      <p>Seleziona un punto arancione o una fermata nell’elenco per visualizzarne le corse.</p>
+      <p class="bus-map-instructions-desktop">Seleziona un punto arancione o una fermata nell’elenco per visualizzarne le corse.</p>
+      <p class="bus-map-instructions-mobile">Tocca una fermata sulla mappa per visualizzarne le corse.</p>
     </div>
     <button type="button" class="bus-map-close" (click)="close()" aria-label="Chiudi la mappa">✕</button>
   </header>
@@ -14,7 +15,10 @@
       <p *ngIf="validStops.length === 0" class="bus-map-message" role="status">Nessuna fermata con coordinate disponibili.</p>
       <div class="bus-map-legend"><span class="bus-legend-stop"></span> Fermata <span class="bus-legend-user"></span> La tua posizione</div>
     </div>
-    <aside class="bus-map-side-panel" aria-label="Selezione fermata">
+    <aside class="bus-map-side-panel"
+           [class.bus-map-side-panel--selected]="!!selectedStop"
+           [class.bus-map-side-panel--fallback]="!!mapError"
+           aria-label="Selezione fermata">
       <h3>Fermate vicine</h3>
       <div class="bus-map-stop-list">
         <button *ngFor="let stop of validStops" type="button" class="bus-map-stop-choice"

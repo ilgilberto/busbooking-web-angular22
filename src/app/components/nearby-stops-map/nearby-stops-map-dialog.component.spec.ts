@@ -129,4 +129,28 @@ describe('Mappa fermate vicine — dialog', () => {
     expect(markers.every(marker => marker.removed)).toBe(true);
   });
 
+  it('distingue su mobile la scheda selezionata dall’elenco di fallback', async () => {
+    const fixture = TestBed.createComponent(NearbyStopsMapDialogComponent);
+    fixture.detectChanges();
+    const panel = fixture.nativeElement.querySelector('.bus-map-side-panel') as HTMLElement;
+    expect(panel.classList.contains('bus-map-side-panel--selected')).toBe(false);
+    expect(panel.classList.contains('bus-map-side-panel--fallback')).toBe(false);
+
+    fixture.componentInstance.selectStop(stop);
+    fixture.detectChanges();
+    expect(panel.classList.contains('bus-map-side-panel--selected')).toBe(true);
+    expect(fixture.nativeElement.querySelector('.bus-map-routes-button')).toBeTruthy();
+
+    // Il caricamento MapLibre e' asincrono. Verifichiamo il fallback reale
+    // prodotto dal mock che rifiuta il caricamento, invece di assegnare
+    // direttamente mapError (assegnazione che non notifica Angular zoneless).
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(fixture.componentInstance.mapError).toContain('Mappa non disponibile');
+      expect(panel.classList.contains('bus-map-side-panel--fallback')).toBe(true);
+    });
+    fixture.destroy();
+  });
+
+
 });
