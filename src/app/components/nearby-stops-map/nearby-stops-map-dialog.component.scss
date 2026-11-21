@@ -1,0 +1,35 @@
+:host { display: block; width: 100%; height: 100%; min-height: 0; }
+.bus-map-dialog { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; background: #fafafa; color: #252525; }
+.bus-map-dialog-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; background: #404040; color: #fff; padding: 16px 18px; }
+.bus-map-dialog-header h2 { margin: 0 0 5px; font-size: 23px; font-weight: 600; line-height: 1.25; }
+.bus-map-dialog-header p { margin: 0; font-size: 14px; line-height: 1.35; }
+.bus-map-close { flex: 0 0 auto; border: 1px solid #ddd; border-radius: 6px; background: transparent; color: #fff; min-width: 44px; min-height: 44px; font-size: 22px; cursor: pointer; }
+.bus-map-close:hover, .bus-map-close:focus-visible { background: #6a6a6a; }
+.bus-map-dialog-body { display: grid; grid-template-columns: minmax(0, 1fr) 288px; flex: 1; min-height: 0; }
+.bus-map-canvas-pane { position: relative; min-height: 0; background: #e6e9eb; overflow: hidden; }
+.bus-map-canvas { width: 100%; height: 100%; min-height: 250px; }
+.bus-map-message { position: absolute; left: 12px; top: 12px; max-width: calc(100% - 24px); box-sizing: border-box; border-radius: 6px; padding: 10px 12px; color: #333; background: rgba(255,255,255,.96); box-shadow: 0 1px 5px #7775; }
+.bus-map-legend { position: absolute; z-index: 1; bottom: 10px; left: 10px; display: flex; align-items: center; flex-wrap: wrap; gap: 7px; background: rgba(255,255,255,.95); padding: 6px 9px; border-radius: 7px; font-size: 12px; pointer-events: none; }
+.bus-legend-stop, .bus-legend-user { width: 11px; height: 11px; border: 2px solid #fff; box-shadow: 0 0 0 1px #777; border-radius: 50%; }
+.bus-legend-stop { background: #ed6a19; } .bus-legend-user { background: #1767e0; margin-left: 8px; }
+.bus-map-side-panel { box-sizing: border-box; display: flex; flex-direction: column; min-height: 0; overflow: hidden; padding: 12px; background: #fff; border-left: 1px solid #ddd; }
+.bus-map-side-panel h3 { margin: 2px 0 9px; font-size: 17px; }
+.bus-map-stop-list { overflow-y: auto; min-height: 80px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.bus-map-stop-choice { background: #f6f7f9; border: 1px solid #ddd; border-radius: 7px; text-align: left; padding: 9px; min-height: 48px; color: #222; cursor: pointer; }
+.bus-map-stop-choice.is-selected { border: 2px solid #8617a5; background: #f7e8fc; }
+.bus-map-stop-choice strong, .bus-map-stop-choice small { display: block; overflow-wrap: anywhere; }
+.bus-map-stop-choice strong { font-size: 14px; } .bus-map-stop-choice small { font-size: 12px; margin-top: 4px; }
+.bus-map-selection { margin-top: 10px; padding: 11px; background: #f4edf7; border-radius: 7px; font-size: 13px; }
+.bus-map-selection h3 { margin: 0 0 6px; } .bus-map-selection p { margin: 6px 0; }
+.bus-map-hint { color: #555; font-size: 13px; }
+.bus-map-routes-button { width: 100%; min-height: 44px; background: #8617a5; color: #fff; border-radius: 6px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+.bus-map-routes-button:hover { background: #74118e; }
+.bus-map-routes-button:focus-visible, .bus-map-stop-choice:focus-visible, .bus-map-close:focus-visible { outline: 3px solid #d39beb; outline-offset: 2px; }
+@media (max-width: 670px) {
+  .bus-map-dialog-header { padding: 12px; } .bus-map-dialog-header h2 { font-size: 19px; }
+  .bus-map-dialog-header p { font-size: 12px; }
+  .bus-map-dialog-body { grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(250px, 1fr) minmax(170px, 38%); }
+  .bus-map-side-panel { border-left: 0; border-top: 1px solid #ddd; padding: 9px; }
+  .bus-map-selection { margin-top: 6px; }
+  .bus-map-stop-choice { min-height: 42px; }
+}

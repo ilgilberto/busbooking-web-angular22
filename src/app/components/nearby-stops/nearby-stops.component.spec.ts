@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { of, Subject } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NearbyStopsComponent } from './nearby-stops.component';
@@ -26,6 +27,7 @@ const position: GeolocationPosition = {
 describe('NearbyStopsComponent – ricerca remota originale', () => {
   let getNearbyStops: ReturnType<typeof vi.fn>;
   let getMunicipality: ReturnType<typeof vi.fn>;
+  let openMapDialog: ReturnType<typeof vi.fn>;
   let geolocationDescriptor: PropertyDescriptor | undefined;
 
   beforeEach(async () => {
@@ -36,13 +38,21 @@ describe('NearbyStopsComponent – ricerca remota originale', () => {
     });
     getNearbyStops = vi.fn().mockReturnValue(of([nearby]));
     getMunicipality = vi.fn();
-    await TestBed.configureTestingModule({
+    openMapDialog = vi.fn();
+    // MatDialogModule e' importato dal componente standalone. Un provider aggiunto
+    // soltanto al TestBed root potrebbe essere scavalcato dall'injector del modulo.
+    // Il mock va impostato sull'injector del componente sotto test.
+    TestBed.configureTestingModule({
       imports: [NearbyStopsComponent],
       providers: [
         provideRouter([]),
         { provide: StopService, useValue: { getNearbyStops, getMunicipality } }
       ]
-    }).compileComponents();
+    });
+    TestBed.overrideComponent(NearbyStopsComponent, {
+      add: { providers: [{ provide: MatDialog, useValue: { open: openMapDialog } }] }
+    });
+    await TestBed.compileComponents();
   });
 
   afterEach(() => {
@@ -160,4 +170,66 @@ describe('NearbyStopsComponent – ricerca remota originale', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Piazza Test');
     fixture.destroy();
   });
+
+  it('mostra il pulsante mappa in alto e passa alla dialog solo le fermate vicine', async () => {
+    const fixture = TestBed.createComponent(NearbyStopsComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const open = fixture.nativeElement.querySelector('.bus-map-open-button') as HTMLButtonElement;
+    expect(open).toBeTruthy();
+    expect(open.compareDocumentPosition(fixture.nativeElement.querySelector('.stops-list')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    open.click();
+    expect(openMapDialog).toHaveBeenCalledTimes(1);
+    const config = openMapDialog.mock.calls[0][1];
+    expect(config.data.stops).toEqual([nearby]);
+    expect(config.data.userPosition).toEqual({ latitude: 44.5, longitude: 11.34 });
+    // Aprire la mappa NON deve generare ulteriori richieste REST.
+    expect(getNearbyStops).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+  });
+
+  it('non permette di aprire la mappa sui risultati della ricerca remota', async () => {
+    getNearbyStops.mockReturnValueOnce(of([nearby])).mockReturnValueOnce(of([filtered]));
+    const fixture = TestBed.createComponent(NearbyStopsComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.filterText = 'Battindarno';
+    fixture.componentInstance.filtra();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.bus-map-open-button')).toBeNull();
+    fixture.componentInstance.openNearbyMap();
+    expect(openMapDialog).not.toHaveBeenCalled();
+    expect(getNearbyStops).toHaveBeenNthCalledWith(2, 44.5, 11.34, 'Battindarno');
+    fixture.destroy();
+  });
+
+  it('torna a offrire la mappa quando si azzera il filtro e si ricaricano le fermate vicine', async () => {
+    getNearbyStops.mockReturnValueOnce(of([nearby])).mockReturnValueOnce(of([filtered]))
+      .mockReturnValueOnce(of([nearby]));
+    const fixture = TestBed.createComponent(NearbyStopsComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.filterText = 'Battindarno';
+    fixture.componentInstance.filtra();
+    fixture.componentInstance.filterText = '';
+    fixture.componentInstance.filtra();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.bus-map-open-button')).toBeTruthy();
+    fixture.destroy();
+  });
+
+  it('esclude fermate senza coordinate dal popup senza rimuoverle dalla lista', async () => {
+    const noCoords = { ...nearby, codice: '999', denominazione: 'Senza coordinate', latitudine: NaN };
+    getNearbyStops.mockReturnValueOnce(of([nearby, noCoords]));
+    const fixture = TestBed.createComponent(NearbyStopsComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.nativeElement.textContent).toContain('Senza coordinate');
+    fixture.componentInstance.openNearbyMap();
+    expect(openMapDialog.mock.calls[0][1].data.stops).toEqual([nearby]);
+    fixture.destroy();
+  });
+
 });

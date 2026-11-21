@@ -1,0 +1,38 @@
+<section class="bus-map-dialog" role="region" aria-label="Mappa delle fermate vicine">
+  <header class="bus-map-dialog-header">
+    <div>
+      <h2 id="bus-map-dialog-title">Fermate vicine sulla mappa</h2>
+      <p>Seleziona un punto arancione o una fermata nell’elenco per visualizzarne le corse.</p>
+    </div>
+    <button type="button" class="bus-map-close" (click)="close()" aria-label="Chiudi la mappa">✕</button>
+  </header>
+
+  <div class="bus-map-dialog-body">
+    <div class="bus-map-canvas-pane">
+      <div #mapContainer class="bus-map-canvas" role="application" aria-label="Mappa interattiva delle fermate"></div>
+      <p *ngIf="mapError" class="bus-map-message" role="alert">{{ mapError }}</p>
+      <p *ngIf="validStops.length === 0" class="bus-map-message" role="status">Nessuna fermata con coordinate disponibili.</p>
+      <div class="bus-map-legend"><span class="bus-legend-stop"></span> Fermata <span class="bus-legend-user"></span> La tua posizione</div>
+    </div>
+    <aside class="bus-map-side-panel" aria-label="Selezione fermata">
+      <h3>Fermate vicine</h3>
+      <div class="bus-map-stop-list">
+        <button *ngFor="let stop of validStops" type="button" class="bus-map-stop-choice"
+                [class.is-selected]="selectedStop?.codice === stop.codice"
+                [attr.aria-pressed]="selectedStop?.codice === stop.codice"
+                (click)="selectStop(stop)">
+          <strong>{{ stop.denominazione }}</strong>
+          <small>{{ stop.codice }} · {{ formatDistance(stop.distanza) }}</small>
+        </button>
+      </div>
+      <div class="bus-map-selection" *ngIf="selectedStop as stop; else noSelection">
+        <h3>Fermata selezionata</h3>
+        <strong>{{ stop.denominazione }}</strong>
+        <p>{{ stop.ubicazione }} {{ stop.comune || '' }}</p>
+        <p>{{ formatDistance(stop.distanza) }}</p>
+        <button type="button" class="bus-map-routes-button" (click)="viewSelectedRoutes()">Visualizza corse</button>
+      </div>
+      <ng-template #noSelection><p class="bus-map-hint">Seleziona una fermata per consultare le corse.</p></ng-template>
+    </aside>
+  </div>
+</section>

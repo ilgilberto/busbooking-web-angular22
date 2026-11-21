@@ -22,25 +22,56 @@
             "outputMode": "static",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": ["zone.js"],
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              {"glob": "favicon.ico", "input": "src", "output": "/"},
-              {"glob": "**/*", "input": "src/assets", "output": "/assets"}
+              {
+                "glob": "favicon.ico",
+                "input": "src",
+                "output": "/"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "/assets"
+              },
+              {
+                "glob": "maplibre-gl-worker.mjs",
+                "input": "node_modules/maplibre-gl/dist",
+                "output": "/assets/maplibre/"
+              },
+              {
+                "glob": "maplibre-gl-shared.mjs",
+                "input": "node_modules/maplibre-gl/dist",
+                "output": "/assets/maplibre/"
+              }
             ],
             "styles": [
+              "maplibre-gl/dist/maplibre-gl.css",
               "@angular/material/prebuilt-themes/purple-green.css",
               "src/styles.scss"
             ],
             "scripts": [],
-            "allowedCommonJsDependencies": ["howler"]
+            "allowedCommonJsDependencies": [
+              "howler"
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
-                {"type": "initial", "maximumWarning": "900kB", "maximumError": "1500kB"},
-                {"type": "anyComponentStyle", "maximumWarning": "8kB", "maximumError": "16kB"}
+                {
+                  "type": "initial",
+                  "maximumWarning": "900kB",
+                  "maximumError": "1500kB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
+                }
               ],
               "fileReplacements": [
                 {
@@ -62,10 +93,16 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
-          "options": {"proxyConfig": "proxy.conf.json"},
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
-            "production": {"buildTarget": "bus-booking-web:build:production"},
-            "development": {"buildTarget": "bus-booking-web:build:development"}
+            "production": {
+              "buildTarget": "bus-booking-web:build:production"
+            },
+            "development": {
+              "buildTarget": "bus-booking-web:build:development"
+            }
           },
           "defaultConfiguration": "development"
         },

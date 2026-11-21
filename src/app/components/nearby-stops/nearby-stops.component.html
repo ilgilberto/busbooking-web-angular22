@@ -1,5 +1,15 @@
 <div class="stops-page" *ngIf="!loading && !error">
-  <h2 class="stops-heading">{{ appliedFilter ? 'Fermate trovate' : 'Fermate vicine' }}</h2>
+  <div class="stops-heading-row">
+    <h2 class="stops-heading">{{ appliedFilter ? 'Fermate trovate' : 'Fermate vicine' }}</h2>
+    <!-- La mappa non compare mai quando sono visualizzati i risultati del filtro remoto. -->
+    <button *ngIf="canOpenNearbyMap" type="button" class="bus-primary-button bus-map-open-button"
+            (click)="openNearbyMap()" aria-label="Apri la mappa delle fermate vicine">
+      <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M3 6.5 9 3l6 3.5L21 3v14.5L15 21l-6-3.5L3 21z" />
+        <path d="M9 3v14.5M15 6.5V21" />
+      </svg> Mappa fermate
+    </button>
+  </div>
   <div class="stops-list">
     <mat-card *ngFor="let stop of stops" class="bus-stop-card">
       <mat-card-title>{{ stop.denominazione }}</mat-card-title>

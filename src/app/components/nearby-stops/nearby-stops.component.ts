@@ -4,14 +4,17 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Fermata, StopService } from '../../services/stop.service';
+import { mappableStops } from '../../utils/map-stops.util';
+import { NearbyStopsMapDialogComponent, NearbyStopsMapData } from '../nearby-stops-map/nearby-stops-map-dialog.component';
 
 @Component({
   selector: 'app-nearby-stops',
   standalone: true,
-  imports: [NgFor, NgIf, FormsModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule, RouterLink],
+  imports: [NgFor, NgIf, FormsModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule, MatDialogModule, RouterLink],
   templateUrl: './nearby-stops.component.html',
   styleUrl: './nearby-stops.component.scss'
 })
@@ -21,6 +24,7 @@ export class NearbyStopsComponent implements OnInit, OnDestroy {
   /** Testo effettivamente richiesto al backend. */
   appliedFilter = '';
   loading = false;
+  private lastGpsPosition: { latitude: number; longitude: number } | null = null;
   error: string | null = null;
   searchError: string | null = null;
   validationMessage: string | null = null;
@@ -31,7 +35,8 @@ export class NearbyStopsComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly stopService: StopService,
-    private readonly changeDetectorRef: ChangeDetectorRef
+    private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -58,6 +63,31 @@ export class NearbyStopsComponent implements OnInit, OnDestroy {
     this.validationMessage = null;
     // Chiave vuota: ripristina le fermate vicine tramite lo stesso servizio.
     this.findNearbyStops(query || null, true);
+  }
+
+  /** Solo le fermate vicine (nessuna ricerca per chiave) possono essere rappresentate sulla mappa. */
+  get canOpenNearbyMap(): boolean {
+    return !this.loading && !this.error && !this.appliedFilter
+      && mappableStops(this.stops).length > 0;
+  }
+
+  openNearbyMap(): void {
+    if (!this.canOpenNearbyMap) return;
+    const data: NearbyStopsMapData = {
+      stops: mappableStops(this.stops),
+      userPosition: this.lastGpsPosition
+    };
+    this.dialog.open(NearbyStopsMapDialogComponent, {
+      data,
+      width: '1080px',
+      maxWidth: '96vw',
+      height: 'min(90dvh, 850px)',
+      maxHeight: '94dvh',
+      panelClass: 'bus-nearby-map-dialog',
+      autoFocus: 'dialog',
+      restoreFocus: true,
+      ariaLabel: 'Mappa delle fermate vicine'
+    });
   }
 
   formatDistanza(metri: number | undefined): string {
@@ -93,6 +123,7 @@ export class NearbyStopsComponent implements OnInit, OnDestroy {
             next: stops => {
               if (this.destroyed || this.requestSequence !== requestId) return;
               this.stops = stops;
+              this.lastGpsPosition = { latitude, longitude };
               this.appliedFilter = query ?? '';
               this.loading = false;
               // Ripristino del GET /comune (text/plain) e della popup originale.

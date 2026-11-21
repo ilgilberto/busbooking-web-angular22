@@ -137,3 +137,12 @@
 }
 /* Avvisi puntuali sotto il filtro, senza altezze minime fisse. */
 .filter-feedback { margin: 14px 0 0; color: #ffe3e3; font-size: 14px; }
+
+/* Pulsante mappa: in alto, senza modificare schede, filtro e layout esistenti. */
+.stops-heading-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 2px 14px; }
+.stops-heading-row .stops-heading { margin: 0; }
+.bus-map-open-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; white-space: nowrap; }
+@media (max-width: 420px) {
+  .stops-heading-row { align-items: flex-start; }
+  .bus-map-open-button { width: 100%; }
+}

@@ -51,3 +51,11 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 @media (prefers-reduced-motion: reduce) {
   .bus-reference-modal { transition: none; }
 }
+
+/* Stile globale dei segnaposto HTML creati da MapLibre al volo. */
+.bus-nearby-map-dialog .mat-mdc-dialog-surface { padding: 0; overflow: hidden; border-radius: 12px; }
+.bus-map-marker { display: flex; align-items: center; flex-direction: column-reverse; gap: 3px; max-width: 165px; padding: 0; border: none; background: transparent; color: #203040; cursor: pointer; font: 12px Roboto, 'Helvetica Neue', sans-serif; }
+.bus-map-marker-dot { display: block; width: 15px; height: 15px; border: 2px solid white; background: #ed6a19; border-radius: 50%; box-shadow: 0 1px 5px #2228; }
+.bus-map-marker-label { display: block; box-sizing: border-box; max-width: 165px; padding: 3px 5px; background: rgba(255,255,255,.94); border-radius: 4px; border: 1px solid #88939e; box-shadow: 0 2px 4px #0003; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
+.bus-map-marker:focus-visible .bus-map-marker-label { outline: 3px solid #8617a5; outline-offset: 3px; }
+.bus-map-user-marker { width: 17px; height: 17px; border: 3px solid white; border-radius: 50%; background: #1767e0; box-shadow: 0 1px 6px #2229; }
