@@ -1,0 +1,23 @@
+:host {
+  display: block;
+  --bus-footer-height: clamp(40px, 5.5vw, 54px);
+}
+
+.bus-app-layout {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.bus-app-layout--with-footer {
+  // Il footer resta fisso senza coprire l'ultimo elemento delle pagine.
+  padding-bottom: var(--bus-footer-height);
+}
+
+.bus-app-content {
+  flex: 1 0 auto;
+  min-width: 0;
+  width: 100%;
+}

@@ -1,1 +1,6 @@
-<router-outlet></router-outlet>
+<div class="bus-app-layout" [class.bus-app-layout--with-footer]="bannerVisible">
+  <main class="bus-app-content">
+    <router-outlet></router-outlet>
+  </main>
+  <app-banner-footer (availabilityChange)="onBannerAvailabilityChange($event)"></app-banner-footer>
+</div>

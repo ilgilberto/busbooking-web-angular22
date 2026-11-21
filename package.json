@@ -10,7 +10,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false",
     "test:watch": "ng test",
-    "build:ssh": "ng build --configuration production --base-href /busbooking/ && node upload-ssh.js",
+    "build:ssh": "npm run test && ng build --configuration production --base-href /busbooking/ && node upload-ssh.js",
     "verify:static": "node scripts/verify-source.mjs"
   },
   "engines": {

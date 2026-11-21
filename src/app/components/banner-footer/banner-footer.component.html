@@ -1,0 +1,20 @@
+@if (visible) {
+  <footer class="bus-banner-footer" [class.bus-banner-footer--reduced-motion]="reducedMotion"
+          aria-label="Promozioni Conoscenza Creativa">
+    <div class="bus-banner-viewport" #bannerViewport>
+      <a #bannerStrip class="bus-banner-strip"
+         [href]="destinationUrl"
+         target="_blank"
+         (mouseenter)="paused = true" (mouseleave)="paused = false"
+         (focus)="paused = true" (blur)="paused = false"
+         rel="noopener noreferrer"
+         aria-label="Scopri Mondo di Libri su Conoscenza Creativa (apre una nuova scheda)">
+        @for (banner of banners; track banner.index) {
+          <img class="bus-banner-image" [class.bus-banner-image--reduced-hidden]="reducedMotion && banner.index > 0"
+               [src]="banner.url" [attr.width]="banner.width" [attr.height]="banner.height"
+               alt="" loading="eager" draggable="false" />
+        }
+      </a>
+    </div>
+  </footer>
+}
