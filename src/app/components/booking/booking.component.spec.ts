@@ -11,6 +11,12 @@ import { NOTICE_MESSAGE } from '../../utils/notice-message.util';
 
 const UPDATE_URL = `${environment.apiBaseUrl}/fermata/100/23`;
 
+const CONFIGURAZIONE_INIZIALE = {
+  bookingPollingIntervalFarMs: environment.bookingPollingIntervalFarMs,
+  bookingPollingIntervalNearMs: environment.bookingPollingIntervalNearMs,
+  bookingEtaChangeThresholdMs: environment.bookingEtaChangeThresholdMs
+};
+
 describe('BookingComponent – regressioni assistenza rispetto al branch Angular 13', () => {
   let http: HttpTestingController;
   let showNotice: ReturnType<typeof vi.fn>;
@@ -18,6 +24,7 @@ describe('BookingComponent – regressioni assistenza rispetto al branch Angular
   let startTime: number;
 
   beforeEach(async () => {
+    Object.assign(environment, CONFIGURAZIONE_INIZIALE);
     virtualTime = new VirtualTimeScheduler(undefined, 0);
     startTime = new Date(2026, 10, 20, 23, 40, 0).getTime();
     showNotice = vi.fn();
@@ -35,6 +42,7 @@ describe('BookingComponent – regressioni assistenza rispetto al branch Angular
   });
 
   afterEach(() => {
+    Object.assign(environment, CONFIGURAZIONE_INIZIALE);
     http.verify({ ignoreCancelled: true });
     vi.restoreAllMocks();
   });
@@ -243,4 +251,141 @@ describe('BookingComponent – regressioni assistenza rispetto al branch Angular
     http.expectOne(r => r.url === UPDATE_URL).flush(4);
     fixture.destroy();
   });
+
+  it('con ETA esattamente di 2 minuti usa subito il polling veloce ogni 20 secondi', () => {
+    startTime = new Date(2026, 10, 20, 23, 39, 0).getTime();
+    const fixture = createBooking('23:41');
+    fixture.componentInstance.avvia();
+    expect(fixture.componentInstance.intervalloControllo).toBe(20_000);
+    runUntil(19_999);
+    http.expectNone(r => r.url === UPDATE_URL);
+    runUntil(20_000);
+    const first = http.expectOne(r => r.url === UPDATE_URL);
+    expect(first.request.params.get('autobus')).toBe('Bus6047');
+    first.flush(2); // Scostamento di 20 secondi, non aggiorna l'ETA.
+    runUntil(40_000);
+    http.expectOne(r => r.url === UPDATE_URL).flush(1);
+    fixture.destroy();
+  });
+
+  it('passa automaticamente da 30 a 20 secondi quando il countdown raggiunge i 2 minuti', () => {
+    startTime = new Date(2026, 10, 20, 23, 38, 59).getTime(); // ETA 2m 1s
+    const fixture = createBooking('23:41');
+    fixture.componentInstance.avvia();
+    expect(fixture.componentInstance.intervalloControllo).toBe(30_000);
+    runUntil(999);
+    expect(fixture.componentInstance.intervalloControllo).toBe(30_000);
+    runUntil(1_000);
+    expect(fixture.componentInstance.intervalloControllo).toBe(20_000);
+    runUntil(20_999);
+    http.expectNone(r => r.url === UPDATE_URL);
+    runUntil(21_000);
+    http.expectOne(r => r.url === UPDATE_URL).flush(2);
+    runUntil(30_000);
+    http.expectNone(r => r.url === UPDATE_URL); // timer precedente da 30 s annullato
+    fixture.destroy();
+  });
+
+  it('ritorna a 30 secondi dopo una previsione posticipata oltre i 2 minuti', () => {
+    startTime = new Date(2026, 10, 20, 23, 39, 30).getTime(); // ETA 1m 30s
+    const audio = vi.spyOn(Howl.prototype, 'play').mockReturnValue(1);
+    const fixture = createBooking('23:41');
+    const booking = fixture.componentInstance;
+    booking.avvia();
+    expect(booking.intervalloControllo).toBe(20_000);
+    runUntil(20_000);
+    http.expectOne(r => r.url === UPDATE_URL).flush(5); // nuova stima a 5 minuti
+    expect(booking.intervalloControllo).toBe(30_000);
+    expect(audio).toHaveBeenCalled();
+    runUntil(40_000);
+    http.expectNone(r => r.url === UPDATE_URL); // cancellato il vecchio polling da 20 s
+    runUntil(49_999);
+    http.expectNone(r => r.url === UPDATE_URL);
+    runUntil(50_000);
+    http.expectOne(r => r.url === UPDATE_URL).flush(5);
+    fixture.destroy();
+  });
+
+  it('un ETA anticipato tramite REST attiva subito l’intervallo di 20 secondi', () => {
+    const fixture = createBooking('23:45'); // 5 minuti: polling normale
+    const booking = fixture.componentInstance;
+    booking.avvia();
+    expect(booking.intervalloControllo).toBe(30_000);
+    booking.verificaOrario();
+    http.expectOne(r => r.url === UPDATE_URL).flush(1); // ETA 1 minuto
+    expect(booking.intervalloControllo).toBe(20_000);
+    runUntil(19_999);
+    http.expectNone(r => r.url === UPDATE_URL);
+    runUntil(20_000);
+    http.expectOne(r => r.url === UPDATE_URL).flush(1);
+    fixture.destroy();
+  });
+
+  it('legge i due intervalli dai file environment, senza valori fissi nel componente', () => {
+    environment.bookingPollingIntervalFarMs = 13_000;
+    environment.bookingPollingIntervalNearMs = 7_000;
+    vi.spyOn(Howl.prototype, 'play').mockReturnValue(1);
+    const far = createBooking('23:45');
+    far.componentInstance.avvia();
+    expect(far.componentInstance.intervalloControllo).toBe(13_000);
+    runUntil(13_000);
+    http.expectOne(r => r.url === UPDATE_URL).flush(5);
+    far.destroy();
+
+    const near = createBooking('23:41'); // adesso mancano 60 - 13 = 47 secondi
+    near.componentInstance.avvia();
+    expect(near.componentInstance.intervalloControllo).toBe(7_000);
+    runUntil(19_999);
+    http.expectNone(r => r.url === UPDATE_URL);
+    runUntil(20_000);
+    http.expectOne(r => r.url === UPDATE_URL).flush(1);
+    near.destroy();
+  });
+
+  it('applica la soglia acustica configurabile e rispetta la condizione strettamente maggiore', () => {
+    environment.bookingEtaChangeThresholdMs = 90_000;
+    const audio = vi.spyOn(Howl.prototype, 'play').mockReturnValue(1);
+    const fixture = createBooking('23:45');
+    const booking = fixture.componentInstance;
+    booking.avvia();
+
+    booking.verificaOrario();
+    http.expectOne(r => r.url === UPDATE_URL).flush(6); // +60 secondi
+    expect(booking.tempoRestante).toBe('5m 0s');
+    expect(showNotice).not.toHaveBeenCalledWith("L'orario è stato aggiornato", 3000);
+    expect(audio).not.toHaveBeenCalled();
+
+    booking.verificaOrario();
+    http.expectOne(r => r.url === UPDATE_URL).flush(7); // +120 secondi
+    expect(booking.tempoRestante).toBe('7m 0s');
+    expect(showNotice).toHaveBeenCalledWith("L'orario è stato aggiornato", 3000);
+    expect(audio).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+  });
+
+  it('soglia di scostamento esattamente uguale al valore configurato: nessun beep', () => {
+    const audio = vi.spyOn(Howl.prototype, 'play').mockReturnValue(1);
+    const fixture = createBooking('23:45');
+    const booking = fixture.componentInstance;
+    booking.avvia();
+    booking.verificaOrario();
+    http.expectOne(r => r.url === UPDATE_URL).flush(6); // +60 secondi esatti
+    expect(showNotice).not.toHaveBeenCalledWith("L'orario è stato aggiornato", 3000);
+    expect(audio).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('interrompendo un’assistenza nella fascia veloce non partono altre GET', () => {
+    startTime = new Date(2026, 10, 20, 23, 39, 30).getTime();
+    const fixture = createBooking('23:41');
+    fixture.componentInstance.avvia();
+    runUntil(20_000);
+    http.expectOne(r => r.url === UPDATE_URL).flush(1);
+    fixture.componentInstance.interrompi(false);
+    runUntil(100_000);
+    http.expectNone(r => r.url === UPDATE_URL);
+    expect(fixture.componentInstance.attivo).toBe(false);
+    fixture.destroy();
+  });
+
 });

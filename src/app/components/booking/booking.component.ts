@@ -16,6 +16,9 @@ export const BOOKING_NOW = new InjectionToken<() => number>('BOOKING_NOW', {
   providedIn: 'root', factory: () => () => Date.now()
 });
 
+/** La soglia di prossimità (2 minuti) è la stessa utilizzata per gli avvisi di arrivo. */
+const SOGLIA_PROSSIMITA_MS = 2 * 60_000;
+
 @Component({
   selector: 'app-booking',
   standalone: true,
@@ -41,6 +44,7 @@ export class BookingComponent implements OnInit, OnDestroy {
   orarioStimato!: Date;
   private timerSub?: Subscription;
   private checkSub?: Subscription;
+  private intervalloAttivoMs?: number;
   private verificaSub?: Subscription;
   private subKill?: Subscription;
   private readonly suono: Howl;
@@ -53,7 +57,8 @@ export class BookingComponent implements OnInit, OnDestroy {
   visibile = true;
   mostraConferma = false;
   assistenzaId = '';
-  intervalloControllo = 30000;
+  /** Intervallo correntemente applicato al polling satellitare, in millisecondi. */
+  intervalloControllo = environment.bookingPollingIntervalFarMs;
   inArrivoMostrato = false;
 
   constructor(private readonly http: HttpClient, private readonly bookingService: BookingService) {
@@ -89,14 +94,15 @@ export class BookingComponent implements OnInit, OnDestroy {
     this.beepAttivato = false;
     this.inArrivoMostrato = false;
     this.mostraConferma = false;
+    this.intervalloAttivoMs = undefined;
     this.attivo = true;
     this.showNotice(`Ti fornirò assistenza per\n${this.descrizione}`, 3000, 'blue');
     this.bookingService.notifyAssistance(this.assistenzaId);
 
+    // Countdown indipendente ogni secondo; polling inizializzato da aggiornaCountdown().
+    // 30 s con ETA > 2 min, 20 s con ETA <= 2 min (entrambi configurabili).
     this.aggiornaCountdown();
-    // Le due cadenze del branch originale: countdown ogni secondo, REST ogni 30 secondi.
     this.timerSub = interval(1000, this.scheduler).subscribe(() => this.aggiornaCountdown());
-    this.checkSub = interval(this.intervalloControllo, this.scheduler).subscribe(() => this.verificaOrario());
     this.markForCheck();
   }
 
@@ -104,8 +110,9 @@ export class BookingComponent implements OnInit, OnDestroy {
     if (!this.attivo || !this.orarioStimato || this.inChiusura) return;
     // Un arrivo passato non deve trasformarsi in un'attesa di 24 ore.
     const diff = Math.max(0, this.orarioStimato.getTime() - this.now());
+    this.adeguaIntervalloControllo(diff);
 
-    if (diff < 120000 && !this.beepAttivato) {
+    if (diff < SOGLIA_PROSSIMITA_MS && !this.beepAttivato) {
       this.arrivingSound.play();
       this.beepAttivato = true;
       this.mostraConferma = true;
@@ -123,6 +130,26 @@ export class BookingComponent implements OnInit, OnDestroy {
       this.tempoRestante = `${minuti}m ${secondi}s`;
     }
     this.markForCheck();
+  }
+
+  /**
+   * Riprogramma il polling soltanto quando si passa da una fascia all'altra.
+   * Così un tick del countdown (ogni secondo) non posticipa continuamente la GET.
+   * L'eventuale cambio dell'ETA dopo una risposta REST applica subito la nuova fascia.
+   */
+  private adeguaIntervalloControllo(tempoRestanteMs: number): void {
+    if (!this.attivo || this.inChiusura) return;
+
+    const nuovoIntervallo = tempoRestanteMs <= SOGLIA_PROSSIMITA_MS
+      ? environment.bookingPollingIntervalNearMs
+      : environment.bookingPollingIntervalFarMs;
+
+    if (this.intervalloAttivoMs === nuovoIntervallo && this.checkSub && !this.checkSub.closed) return;
+
+    this.checkSub?.unsubscribe();
+    this.intervalloAttivoMs = nuovoIntervallo;
+    this.intervalloControllo = nuovoIntervallo;
+    this.checkSub = interval(nuovoIntervallo, this.scheduler).subscribe(() => this.verificaOrario());
   }
 
   verificaOrario(): void {
@@ -149,12 +176,12 @@ export class BookingComponent implements OnInit, OnDestroy {
         } else if (typeof minuti === 'number' && Number.isFinite(minuti) && minuti >= 0) {
           const nuovaOra = new Date(this.now());
           nuovaOra.setMinutes(nuovaOra.getMinutes() + minuti);
-          if (Math.abs(this.orarioStimato.getTime() - nuovaOra.getTime()) > 60000) {
+          if (Math.abs(this.orarioStimato.getTime() - nuovaOra.getTime()) > environment.bookingEtaChangeThresholdMs) {
             this.showNotice("L'orario è stato aggiornato", 3000);
             this.suono.play();
             this.orarioStimato = nuovaOra;
             // Un ETA posticipato rimette in attesa anche gli allarmi di prossimità.
-            if (nuovaOra.getTime() - this.now() >= 120000) {
+            if (nuovaOra.getTime() - this.now() >= SOGLIA_PROSSIMITA_MS) {
               this.arrivingSound.stop();
               this.beepAttivato = false;
               this.mostraConferma = false;
@@ -175,6 +202,7 @@ export class BookingComponent implements OnInit, OnDestroy {
     this.verificaSub?.unsubscribe();
     this.timerSub = undefined;
     this.checkSub = undefined;
+    this.intervalloAttivoMs = undefined;
     this.verificaSub = undefined;
     this.suono.stop();
     this.arrivingSound.stop();
